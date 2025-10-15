@@ -1,0 +1,30 @@
+﻿@model PimWeb.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Bem-vindo, @Model.NomeUsuario!</h1>
+    <p>Perfil: <span class="badge bg-primary">@Model.PerfilUsuario</span></p>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Gerenciar Usuários</h5>
+                    <p class="card-text">Cadastrar, editar e gerenciar usuários do sistema.</p>
+                    <a href="@Url.Action("Index", "Usuarios")" class="btn btn-primary">Acessar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Configurações</h5>
+                    <p class="card-text">Configurações do sistema e perfil.</p>
+                    <a href="#" class="btn btn-secondary">Em breve</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -71,12 +71,34 @@ bld/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+*.deps.json
+*.runtimeconfig.json
+*.dll
+*.pdb
+*.exe
 
 # NuGet
 *.nupkg
 *.snupkg
 .nuget/
 packages/
+project.assets.json
+project.nuget.cache
+*.nuget.props
+*.nuget.targets
+*.nuget.dgspec.json
+
+# Entity Framework
+*.EntityFrameworkCore.targets
+
+# Static web assets
+staticwebassets/
+staticwebassets.build.json
+staticwebassets.build.endpoints.json
+*.staticwebassets.runtime.json
+
+# Cache files
+*.cache
 
 # Docker
 .dockerignore
@@ -112,7 +134,6 @@ Thumbs.db
 # IDE
 *.swp
 *.swo
-*~
 
 # Node modules (if any)
 node_modules/
@@ -126,3 +147,15 @@ coverage/
 TestResults/
 [Tt]est[Rr]esult*/
 *.trx
+
+# Razor compiled files
+*.razor.g.cs
+*.cshtml.g.cs
+
+
+.amazonq/rules/ADS_2025_2_PIM_IV_QUARTO_E_TERCEIRO_SEMESTRES_ALUNO.txt
+ADS_2025_2_PIM_IV_QUARTO_E_TERCEIRO_SEMESTRES_ALUNO.pdf
+backend/checklist.md
+frontend/checklist.md
+.gitignore
+requisitos.md

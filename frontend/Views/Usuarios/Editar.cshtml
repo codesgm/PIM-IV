@@ -1,0 +1,49 @@
+@model PimWeb.Models.UsuarioCadastroViewModel
+@{
+    ViewData["Title"] = "Editar Usuário";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-lg-6 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Editar Usuário</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" name="Id" value="@Model.Id">
+                        
+                        <div class="mb-3">
+                            <label for="Nome" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="Nome" name="Nome" value="@Model.Nome" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="Email" name="Email" value="@Model.Email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Senha" class="form-label">Nova Senha (deixe em branco para manter a atual)</label>
+                            <input type="password" class="form-control" id="Senha" name="Senha">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="PerfilAcesso" class="form-label">Perfil de Acesso</label>
+                            <select class="form-select" id="PerfilAcesso" name="PerfilAcesso" required>
+                                <option value="0">Administrador</option>
+                                <option value="1">Técnico</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

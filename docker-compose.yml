@@ -1,0 +1,51 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: pim-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=MyStrongPassword123!
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - pim-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pim-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=PimDB;User Id=sa;Password=MyStrongPassword123!;TrustServerCertificate=true;
+    ports:
+      - "5000:5000"
+    depends_on:
+      - sqlserver
+    networks:
+      - pim-network
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pim-web
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ApiSettings__BaseUrl=http://api:5000
+    ports:
+      - "5028:8080"
+    depends_on:
+      - api
+    networks:
+      - pim-network
+
+volumes:
+  sqlserver_data:
+
+networks:
+  pim-network:
+    driver: bridge
