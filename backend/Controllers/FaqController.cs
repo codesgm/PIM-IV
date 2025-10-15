@@ -222,6 +222,35 @@ namespace PimApi.Controllers
             }
         }
 
+        [HttpGet("categoria/{categoria}")]
+        public async Task<ActionResult<ApiResponseDto<List<FaqResponseDto>>>> ListarFaqsPorCategoria(CategoriaFaq categoria)
+        {
+            try
+            {
+                var faqs = await _context.Faqs
+                    .Where(f => f.Ativo && f.Categoria == categoria)
+                    .OrderBy(f => f.DataCriacao)
+                    .Select(f => new FaqResponseDto
+                    {
+                        Id = f.Id,
+                        Pergunta = f.Pergunta,
+                        Resposta = f.Resposta,
+                        Categoria = f.Categoria,
+                        CategoriaNome = f.Categoria.ToString(),
+                        Ativo = f.Ativo,
+                        DataCriacao = f.DataCriacao,
+                        DataAtualizacao = f.DataAtualizacao
+                    })
+                    .ToListAsync();
+
+                return Ok(ApiResponseDto<List<FaqResponseDto>>.SuccessResult(faqs));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponseDto<List<FaqResponseDto>>.ErrorResult($"Erro interno: {ex.Message}"));
+            }
+        }
+
         [HttpGet("buscar")]
         public async Task<ActionResult<ApiResponseDto<List<FaqResponseDto>>>> BuscarFaqs([FromQuery] string termo)
         {

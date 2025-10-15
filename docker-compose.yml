@@ -43,6 +43,21 @@ services:
     networks:
       - pim-network
 
+  faq:
+    build:
+      context: ./faq
+      dockerfile: Dockerfile
+    container_name: pim-faq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ApiSettings__BaseUrl=http://api:5000
+    ports:
+      - "5030:8080"
+    depends_on:
+      - api
+    networks:
+      - pim-network
+
 volumes:
   sqlserver_data:
 

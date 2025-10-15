@@ -1,0 +1,124 @@
+@model FaqPublico.Models.FaqListViewModel
+@{
+    ViewData["Title"] = "Perguntas Frequentes";
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Barra de Busca -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" name="busca" 
+                                   value="@Model.TermoBusca" placeholder="Digite sua dúvida...">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Filtros por Categoria -->
+        <div class="mb-4">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="@Url.Action("Index")" class="btn @(Model.CategoriaFiltro == null ? "btn-primary" : "btn-outline-primary") btn-sm">
+                    <i class="fas fa-list me-1"></i>Todas
+                </a>
+                @foreach (var cat in Model.Categorias)
+                {
+                    <a href="@Url.Action("Index", new { categoria = (int)cat.Key })" 
+                       class="btn @(Model.CategoriaFiltro == cat.Key ? "btn-primary" : "btn-outline-primary") btn-sm">
+                        @cat.Value
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        @if (!string.IsNullOrWhiteSpace(Model.TermoBusca))
+        {
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-1"></i>
+                Resultados para: <strong>@Model.TermoBusca</strong> (@Model.Faqs.Count encontrados)
+            </div>
+        }
+        else if (Model.CategoriaFiltro.HasValue)
+        {
+            <div class="alert alert-info">
+                <i class="fas fa-filter me-1"></i>
+                Categoria: <strong>@Model.Categorias[Model.CategoriaFiltro.Value]</strong> (@Model.Faqs.Count perguntas)
+            </div>
+        }
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                @ViewBag.ErrorMessage
+            </div>
+        }
+
+        <!-- Lista de FAQs -->
+        @if (Model.Faqs.Any())
+        {
+            <div class="accordion" id="faqAccordion">
+                @for (int i = 0; i < Model.Faqs.Count; i++)
+                {
+                    var faq = Model.Faqs[i];
+                    var collapseId = $"collapse{faq.Id}";
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button @(i != 0 ? "collapsed" : "")" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#@collapseId">
+                                <div class="d-flex align-items-center w-100">
+                                    <span class="badge bg-secondary me-2">@Model.Categorias[faq.Categoria]</span>
+                                    <span>@faq.Pergunta</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")" 
+                             data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <div class="d-flex align-items-start">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                        <i class="fas fa-lightbulb text-primary"></i>
+                                    </div>
+                                    <div>
+                                        @Html.Raw(faq.Resposta.Replace("\n", "<br>"))
+                                        <div class="text-muted small mt-2">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Atualizado em @faq.DataCriacao.ToString("dd/MM/yyyy")
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="fas fa-search text-muted" style="font-size: 3rem;"></i>
+                </div>
+                <h4 class="text-muted">Nenhuma pergunta encontrada</h4>
+                <p class="text-muted">Tente usar outros termos de busca ou navegue pelas categorias.</p>
+                <a href="@Url.Action("Index")" class="btn btn-primary">
+                    <i class="fas fa-list me-1"></i>Ver Todas as Perguntas
+                </a>
+            </div>
+        }
+    </div>
+</div>
