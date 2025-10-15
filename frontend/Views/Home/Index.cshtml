@@ -1,30 +1,118 @@
-﻿@model PimWeb.Models.DashboardViewModel
+@model PimWeb.Models.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Bem-vindo, @Model.NomeUsuario!</h1>
-    <p>Perfil: <span class="badge bg-primary">@Model.PerfilUsuario</span></p>
-    
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Gerenciar Usuários</h5>
-                    <p class="card-text">Cadastrar, editar e gerenciar usuários do sistema.</p>
-                    <a href="@Url.Action("Index", "Usuarios")" class="btn btn-primary">Acessar</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Bem-vindo, @Model.NomeUsuario!</h1>
+        <p class="text-muted mb-0">
+            <span class="badge bg-primary">@Model.PerfilUsuario</span>
+            <span class="ms-2">Gerencie o sistema de suporte técnico</span>
+        </p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-users text-primary" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">Gerenciar Usuários</h5>
                 </div>
             </div>
+            <p class="text-muted mb-3">Cadastrar, editar e gerenciar usuários do sistema de suporte técnico.</p>
+            <a href="@Url.Action("Index", "Usuarios")" class="btn btn-primary">
+                <i class="fas fa-arrow-right me-2"></i>Acessar
+            </a>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Configurações</h5>
-                    <p class="card-text">Configurações do sistema e perfil.</p>
-                    <a href="#" class="btn btn-secondary">Em breve</a>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-ticket-alt text-success" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">Chamados</h5>
                 </div>
             </div>
+            <p class="text-muted mb-3">Gerenciar chamados de suporte técnico e solicitações dos usuários.</p>
+            <button class="btn btn-outline-secondary" disabled>
+                <i class="fas fa-clock me-2"></i>Em breve
+            </button>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-chart-bar text-warning" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">Relatórios</h5>
+                </div>
+            </div>
+            <p class="text-muted mb-3">Visualizar relatórios e métricas do sistema de suporte técnico.</p>
+            <button class="btn btn-outline-secondary" disabled>
+                <i class="fas fa-clock me-2"></i>Em breve
+            </button>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-robot text-info" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">IA & FAQ</h5>
+                </div>
+            </div>
+            <p class="text-muted mb-3">Gerenciar FAQ inteligente e recursos de inteligência artificial.</p>
+            <button class="btn btn-outline-secondary" disabled>
+                <i class="fas fa-clock me-2"></i>Em breve
+            </button>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-secondary bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-cog text-secondary" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">Configurações</h5>
+                </div>
+            </div>
+            <p class="text-muted mb-3">Configurações do sistema, perfil e preferências do usuário.</p>
+            <button class="btn btn-outline-secondary" disabled>
+                <i class="fas fa-clock me-2"></i>Em breve
+            </button>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="dashboard-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-danger bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="fas fa-mobile-alt text-danger" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">App Mobile</h5>
+                </div>
+            </div>
+            <p class="text-muted mb-3">Aplicativo móvel para abertura e acompanhamento de chamados.</p>
+            <button class="btn btn-outline-secondary" disabled>
+                <i class="fas fa-clock me-2"></i>Em breve
+            </button>
         </div>
     </div>
 </div>
