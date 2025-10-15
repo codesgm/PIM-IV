@@ -7,6 +7,7 @@ namespace PimApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsuariosController : ControllerBase
     {
         private readonly IUsuarioService _usuarioService;
@@ -17,6 +18,7 @@ namespace PimApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<ApiResponseDto<UsuarioResponseDto>>> CadastrarUsuario([FromBody] CadastroUsuarioRequestDto request)
         {
             if (!ModelState.IsValid)
@@ -80,6 +82,7 @@ namespace PimApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<ApiResponseDto<UsuarioResponseDto>>> EditarUsuario(int id, [FromBody] EditarUsuarioRequestDto request)
         {
             if (!ModelState.IsValid)
@@ -107,6 +110,7 @@ namespace PimApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<ApiResponseDto<object>>> DesativarUsuario(int id)
         {
             try

@@ -32,8 +32,16 @@
                         <div class="mb-3">
                             <label for="PerfilAcesso" class="form-label">Perfil de Acesso</label>
                             <select class="form-select" id="PerfilAcesso" name="PerfilAcesso" required>
-                                <option value="0">Administrador</option>
-                                <option value="1">Técnico</option>
+                                @if (Model.PerfilAcesso == PimWeb.Models.PerfilAcesso.Administrador)
+                                {
+                                    <option value="1" selected>Administrador</option>
+                                    <option value="2">Técnico</option>
+                                }
+                                else
+                                {
+                                    <option value="1">Administrador</option>
+                                    <option value="2" selected>Técnico</option>
+                                }
                             </select>
                         </div>
 

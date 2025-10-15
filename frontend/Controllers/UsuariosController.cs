@@ -31,6 +31,9 @@ namespace PimWeb.Controllers
             if (!_authService.IsAuthenticated())
                 return RedirectToAction("Login", "Auth");
 
+            if (!_authService.IsAdmin())
+                return Forbid();
+
             return View(new UsuarioCadastroViewModel());
         }
 
@@ -39,6 +42,9 @@ namespace PimWeb.Controllers
         {
             if (!_authService.IsAuthenticated())
                 return RedirectToAction("Login", "Auth");
+
+            if (!_authService.IsAdmin())
+                return Forbid();
 
             if (!ModelState.IsValid)
                 return View(model);
@@ -63,6 +69,9 @@ namespace PimWeb.Controllers
             if (!_authService.IsAuthenticated())
                 return RedirectToAction("Login", "Auth");
 
+            if (!_authService.IsAdmin())
+                return Forbid();
+
             var response = await _usuarioService.ObterPorIdAsync(id);
             if (response?.Data == null)
                 return NotFound();
@@ -85,6 +94,9 @@ namespace PimWeb.Controllers
             if (!_authService.IsAuthenticated())
                 return RedirectToAction("Login", "Auth");
 
+            if (!_authService.IsAdmin())
+                return Forbid();
+
             if (!ModelState.IsValid)
                 return View(model);
 
@@ -92,7 +104,8 @@ namespace PimWeb.Controllers
             {
                 Nome = model.Nome,
                 Email = model.Email,
-                PerfilAcesso = model.PerfilAcesso
+                PerfilAcesso = model.PerfilAcesso,
+                Status = StatusUsuario.Ativo
             };
 
             var response = await _usuarioService.EditarAsync(model.Id ?? 0, dto);
@@ -108,6 +121,9 @@ namespace PimWeb.Controllers
         {
             if (!_authService.IsAuthenticated())
                 return RedirectToAction("Login", "Auth");
+
+            if (!_authService.IsAdmin())
+                return Forbid();
 
             await _usuarioService.DesativarAsync(id);
             return RedirectToAction("Index");
