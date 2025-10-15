@@ -1,0 +1,129 @@
+@model PimWeb.Models.FaqListViewModel
+@{
+    ViewData["Title"] = "Gerenciar FAQ";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Gerenciar FAQ</h1>
+        <p class="text-muted mb-0">Cadastrar e gerenciar perguntas frequentes</p>
+    </div>
+    <a href="@Url.Action("Criar")" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Nova Pergunta
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="busca" class="form-control" placeholder="Buscar por pergunta..." value="@Model.TermoBusca">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="fas fa-search"></i>
+            </button>
+            @if (!string.IsNullOrEmpty(Model.TermoBusca))
+            {
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i>
+                </a>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>Pergunta</th>
+                        <th>Categoria</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th class="pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Faqs != null && Model.Faqs.Any())
+                    {
+                        @foreach (var faq in Model.Faqs)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-medium">#@faq.Id</span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div class="fw-medium">@faq.Pergunta</div>
+                                        <small class="text-muted">@(faq.Resposta.Length > 100 ? faq.Resposta.Substring(0, 100) + "..." : faq.Resposta)</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@faq.CategoriaNome</span>
+                                </td>
+                                <td>
+                                    <span class="badge @(faq.Ativo ? "bg-success" : "bg-danger")">
+                                        @(faq.Ativo ? "Ativo" : "Inativo")
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">@faq.DataCriacao.ToString("dd/MM/yyyy")</small>
+                                </td>
+                                <td class="pe-4">
+                                    <div class="d-flex gap-2">
+                                        <a href="@Url.Action("Editar", new { id = faq.Id })" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit me-1"></i>Editar
+                                        </a>
+                                        <form method="post" action="@Url.Action("Excluir", new { id = faq.Id })" class="d-inline" 
+                                              onsubmit="return confirm('Tem certeza que deseja excluir esta pergunta?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash me-1"></i>Excluir
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-question-circle fa-3x mb-3 opacity-25"></i>
+                                    <p class="mb-0">
+                                        @if (!string.IsNullOrEmpty(Model.TermoBusca))
+                                        {
+                                            <span>Nenhuma pergunta encontrada para "@Model.TermoBusca"</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Nenhuma pergunta cadastrada</span>
+                                        }
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

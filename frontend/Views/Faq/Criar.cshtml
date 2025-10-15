@@ -1,0 +1,66 @@
+@model PimWeb.Models.FaqCadastroViewModel
+@{
+    ViewData["Title"] = "Nova Pergunta FAQ";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Nova Pergunta FAQ</h1>
+        <p class="text-muted mb-0">Cadastrar nova pergunta frequente</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label asp-for="Pergunta" class="form-label">Pergunta</label>
+                        <input asp-for="Pergunta" class="form-control" placeholder="Digite a pergunta frequente">
+                        <span asp-validation-for="Pergunta" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Resposta" class="form-label">Resposta</label>
+                        <textarea asp-for="Resposta" class="form-control" rows="6" placeholder="Digite a resposta detalhada"></textarea>
+                        <span asp-validation-for="Resposta" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Categoria" class="form-label">Categoria</label>
+                        <select asp-for="Categoria" class="form-select">
+                            <option value="">Selecione uma categoria...</option>
+                            <option value="1">Gestão de Contas</option>
+                            <option value="2">Relatórios</option>
+                            <option value="3">Configurações</option>
+                            <option value="4">Problemas Técnicos</option>
+                        </select>
+                        <span asp-validation-for="Categoria" class="text-danger small"></span>
+                    </div>
+
+                    @if (ViewData.ModelState.ErrorCount > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

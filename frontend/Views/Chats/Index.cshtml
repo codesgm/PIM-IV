@@ -1,0 +1,131 @@
+@model PimWeb.Models.ChatsViewModel
+@{
+    ViewData["Title"] = "Chats";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Chats em Aberto</h1>
+        <p class="text-muted mb-0">
+            @if (Model.IsAdmin)
+            {
+                <span>Visualizando todos os chats do sistema</span>
+            }
+            else
+            {
+                <span>Visualizando apenas seus chats atribuídos</span>
+            }
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <span class="badge bg-success fs-6 px-3 py-2">
+            <i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i>Online
+        </span>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Lista de Chats -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Conversas Ativas</h6>
+                <span class="badge bg-primary">0</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <!-- Estado vazio -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">Nenhum chat ativo</h6>
+                        <p class="text-muted small mb-0">
+                            @if (Model.IsAdmin)
+                            {
+                                <span>Aguardando novos chats de clientes</span>
+                            }
+                            else
+                            {
+                                <span>Nenhum chat foi atribuído a você</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área de Chat -->
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <i class="fas fa-user text-secondary"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Selecione um chat</h6>
+                        <small class="text-muted">Escolha uma conversa para visualizar</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px;">
+                <div class="text-center">
+                    <i class="fas fa-comment-dots fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Bem-vindo ao Chat</h5>
+                    <p class="text-muted">
+                        @if (Model.IsAdmin)
+                        {
+                            <span>Você pode visualizar e gerenciar todos os chats do sistema.<br>
+                            Selecione uma conversa na lista ao lado para começar.</span>
+                        }
+                        else
+                        {
+                            <span>Aqui você verá os chats atribuídos a você.<br>
+                            Quando um novo chat for designado, ele aparecerá na lista ao lado.</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas rápidas -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-comments text-primary fa-2x mb-2"></i>
+                <h4 class="mb-1">0</h4>
+                <small class="text-muted">Chats Ativos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-clock text-warning fa-2x mb-2"></i>
+                <h4 class="mb-1">0</h4>
+                <small class="text-muted">Aguardando</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                <h4 class="mb-1">0</h4>
+                <small class="text-muted">Resolvidos Hoje</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-user-clock text-info fa-2x mb-2"></i>
+                <h4 class="mb-1">-</h4>
+                <small class="text-muted">Tempo Médio</small>
+            </div>
+        </div>
+    </div>
+</div>

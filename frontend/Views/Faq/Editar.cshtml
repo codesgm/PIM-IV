@@ -1,0 +1,100 @@
+@model PimWeb.Models.FaqCadastroViewModel
+@{
+    ViewData["Title"] = "Editar Pergunta FAQ";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Editar Pergunta FAQ</h1>
+        <p class="text-muted mb-0">Alterar pergunta frequente #@Model.Id</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" asp-for="Id">
+                    
+                    <div class="mb-3">
+                        <label asp-for="Pergunta" class="form-label">Pergunta</label>
+                        <input asp-for="Pergunta" class="form-control" placeholder="Digite a pergunta frequente">
+                        <span asp-validation-for="Pergunta" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Resposta" class="form-label">Resposta</label>
+                        <textarea asp-for="Resposta" class="form-control" rows="6" placeholder="Digite a resposta detalhada"></textarea>
+                        <span asp-validation-for="Resposta" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Categoria" class="form-label">Categoria</label>
+                        <select asp-for="Categoria" class="form-select">
+                            @if (Model.Categoria == PimWeb.Models.CategoriaFaq.GestaoContas)
+                            {
+                                <option value="1" selected>Gestão de Contas</option>
+                                <option value="2">Relatórios</option>
+                                <option value="3">Configurações</option>
+                                <option value="4">Problemas Técnicos</option>
+                            }
+                            else if (Model.Categoria == PimWeb.Models.CategoriaFaq.Relatorios)
+                            {
+                                <option value="1">Gestão de Contas</option>
+                                <option value="2" selected>Relatórios</option>
+                                <option value="3">Configurações</option>
+                                <option value="4">Problemas Técnicos</option>
+                            }
+                            else if (Model.Categoria == PimWeb.Models.CategoriaFaq.Configuracoes)
+                            {
+                                <option value="1">Gestão de Contas</option>
+                                <option value="2">Relatórios</option>
+                                <option value="3" selected>Configurações</option>
+                                <option value="4">Problemas Técnicos</option>
+                            }
+                            else
+                            {
+                                <option value="1">Gestão de Contas</option>
+                                <option value="2">Relatórios</option>
+                                <option value="3">Configurações</option>
+                                <option value="4" selected>Problemas Técnicos</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Categoria" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input asp-for="Ativo" class="form-check-input" type="checkbox">
+                            <label asp-for="Ativo" class="form-check-label">
+                                Pergunta ativa (visível no FAQ público)
+                            </label>
+                        </div>
+                    </div>
+
+                    @if (ViewData.ModelState.ErrorCount > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
