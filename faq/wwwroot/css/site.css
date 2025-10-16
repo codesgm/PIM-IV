@@ -63,14 +63,14 @@ body {
 }
 
 .accordion-button {
-  background-color: white;
+  background-color: #f1f5f9;
   border: none;
   padding: 1.25rem;
   font-weight: 500;
 }
 
 .accordion-button:not(.collapsed) {
-  background-color: var(--light-gray);
+  background-color: #e2e8f0;
   color: var(--text-primary);
   box-shadow: none;
 }
