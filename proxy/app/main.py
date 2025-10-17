@@ -71,7 +71,7 @@ async def start_chat_simple(request: dict):
         )
         
         # Criar sessão no proxy
-        session_id = proxy_service.create_session(chat_id, user_name)
+        session_id = await proxy_service.create_session(chat_id, user_name)
         
         return {
             "session_id": session_id,
@@ -99,7 +99,7 @@ async def start_chat(request: StartChatRequest):
         logger.info(f"Chat criado com ID: {chat_id}")
         
         # Criar sessão no proxy
-        session_id = proxy_service.create_session(chat_id, request.user_name)
+        session_id = await proxy_service.create_session(chat_id, request.user_name)
         
         logger.info(f"Sessão criada: {session_id}")
         

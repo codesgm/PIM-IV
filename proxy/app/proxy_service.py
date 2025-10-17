@@ -17,20 +17,28 @@ class ProxyService:
     def generate_session_id(self) -> str:
         return f"proxy_{uuid.uuid4().hex[:8]}"
     
-    def create_session(self, chat_id: int, user_name: str) -> str:
+    async def create_session(self, chat_id: int, user_name: str) -> str:
         session_id = self.generate_session_id()
         now = datetime.now()
+        
+        # Get the latest message ID to avoid duplicates
+        try:
+            messages = await self.get_messages_from_backend(chat_id, 0)
+            last_msg_id = max(msg.id for msg in messages) if messages else 0
+        except:
+            last_msg_id = 0
         
         session = ProxySession(
             session_id=session_id,
             chat_id=chat_id,
             user_name=user_name,
             created_at=now,
-            last_activity=now
+            last_activity=now,
+            last_message_id=last_msg_id
         )
         
         self.sessions[session_id] = session
-        logger.info(f"Sessão criada: {session_id} -> Chat {chat_id}")
+        logger.info(f"Sessão criada: {session_id} -> Chat {chat_id}, last_message_id: {last_msg_id}")
         return session_id
     
     def get_session(self, session_id: str) -> Optional[ProxySession]:

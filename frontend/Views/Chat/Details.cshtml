@@ -2,6 +2,13 @@
 @model PimWeb.Models.ChatDetailViewModel
 @{
     ViewData["Title"] = $"Chat com {Model.Chat.UserName}";
+    
+    // Helper para converter UTC para horário local
+    string FormatLocalTime(DateTime utcTime, string format = "dd/MM HH:mm")
+    {
+        var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time"));
+        return localTime.ToString(format);
+    }
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -11,7 +18,7 @@
             <span class="badge @(Model.Chat.Status == "Active" ? "bg-success" : "bg-secondary") me-2">
                 @(Model.Chat.Status == "Active" ? "Ativo" : "Resolvido")
             </span>
-            @Model.Chat.UserContact • @Model.Chat.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+            @Model.Chat.UserContact • @FormatLocalTime(Model.Chat.CreatedAt, "dd/MM/yyyy HH:mm")
         </p>
     </div>
     <div>
@@ -70,7 +77,7 @@
                                 <div class="message-info">
                                     <small class="text-muted">
                                         @(message.SenderType == "technician" ? message.SenderName ?? "Técnico" : Model.Chat.UserName)
-                                        • @message.CreatedAt.ToString("dd/MM HH:mm")
+                                        • @FormatLocalTime(message.CreatedAt)
                                     </small>
                                 </div>
                             </div>
@@ -116,7 +123,7 @@
         {
             <div class="alert alert-info">
                 <i class="fas fa-info-circle me-1"></i>
-                Este chat foi resolvido em @Model.Chat.ResolvedAt?.ToString("dd/MM/yyyy HH:mm").
+                Este chat foi resolvido em @(Model.Chat.ResolvedAt.HasValue ? FormatLocalTime(Model.Chat.ResolvedAt.Value, "dd/MM/yyyy HH:mm") : "").
             </div>
         }
     </div>
@@ -144,11 +151,11 @@
                 </div>
                 <div class="mb-3">
                     <strong>Criado em:</strong><br>
-                    @Model.Chat.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                    @FormatLocalTime(Model.Chat.CreatedAt, "dd/MM/yyyy HH:mm")
                 </div>
                 <div class="mb-3">
                     <strong>Última atualização:</strong><br>
-                    @Model.Chat.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                    @FormatLocalTime(Model.Chat.UpdatedAt, "dd/MM/yyyy HH:mm")
                 </div>
                 @if (!string.IsNullOrEmpty(Model.Chat.AssignedTechnicianName))
                 {
@@ -180,7 +187,7 @@
                             const messageDiv = document.createElement('div');
                             messageDiv.className = `d-flex ${message.senderType === 'technician' ? 'justify-content-end' : 'justify-content-start'} mb-3`;
                             
-                            const date = new Date(message.createdAt);
+                            const date = new Date(message.createdAt + 'Z'); // Força interpretação como UTC
                             const timeStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + 
                                           date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                             

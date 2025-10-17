@@ -1,7 +1,7 @@
 class ChatWidget {
     constructor(config = {}) {
         this.config = {
-            proxyUrl: config.proxyUrl || 'http://localhost:9000',
+            proxyUrl: config.proxyUrl || 'http://192.168.3.207:9000',
             pollingInterval: config.pollingInterval || 3000,
             maxMessageLength: config.maxMessageLength || 500,
             welcomeMessage: config.welcomeMessage || 'Olá! Como posso ajudá-lo hoje?',
@@ -23,7 +23,11 @@ class ChatWidget {
         this.createWidget();
         this.bindEvents();
         this.loadSession();
-        this.loadUserData();
+        
+        // Carregar dados do usuário e verificar identificação
+        const userData = this.loadUserData();
+        console.log('Dados do usuário carregados:', userData);
+        console.log('Usuário identificado:', this.userIdentified);
     }
     
     createWidget() {
@@ -163,19 +167,28 @@ class ChatWidget {
     }
     
     async openChat() {
+        console.log('openChat chamado - userIdentified:', this.userIdentified);
+        console.log('userData:', this.userData);
+        
         if (!this.userIdentified) {
+            console.log('Mostrando formulário de identificação');
             this.showIdentificationForm();
             return;
         }
         
+        console.log('Iniciando chat...');
         this.isOpen = true;
         this.elements.button.classList.add('active');
         this.elements.modal.classList.add('show');
         this.clearBadge();
         
         if (!this.sessionId) {
+            console.log('Chamando startChat...');
             await this.startChat();
         } else {
+            console.log('Sessão já existe, iniciando polling...');
+            this.elements.loading.style.display = 'none';
+            this.updateStatus('Online');
             this.startPolling();
         }
         
@@ -191,6 +204,10 @@ class ChatWidget {
     
     async startChat() {
         try {
+            console.log('startChat iniciado');
+            console.log('Dados do usuário:', this.userData);
+            console.log('URL do proxy:', this.config.proxyUrl);
+            
             this.updateStatus('Conectando...');
             
             const response = await fetch(`${this.config.proxyUrl}/api/proxy/start-chat`, {
@@ -205,11 +222,18 @@ class ChatWidget {
                 })
             });
             
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erro na resposta:', errorText);
                 throw new Error('Erro ao conectar com o suporte');
             }
             
             const data = await response.json();
+            console.log('Dados recebidos:', data);
+            
             this.sessionId = data.session_id;
             this.saveSession();
             
@@ -219,7 +243,8 @@ class ChatWidget {
             this.startPolling();
             
         } catch (error) {
-            console.error('Erro ao iniciar chat:', error);
+            console.error('Erro detalhado ao iniciar chat:', error);
+            this.elements.loading.style.display = 'none';
             this.showError('Não foi possível conectar ao suporte. Tente novamente.');
             this.updateStatus('Offline');
         }
@@ -283,13 +308,21 @@ class ChatWidget {
             data.messages.forEach(msg => {
                 if (msg.id > this.lastMessageId) {
                     const senderType = msg.sender_type.toLowerCase() === 'user' ? 'user' : 'system';
-                    this.addMessage(senderType, msg.message, new Date(msg.created_at));
-                    this.lastMessageId = msg.id;
                     
-                    // Incrementar badge se chat fechado
-                    if (!this.isOpen && senderType === 'system') {
-                        this.incrementBadge();
+                    // Só adicionar mensagens do sistema/técnico no polling
+                    // Mensagens do usuário já são adicionadas imediatamente no sendMessage
+                    if (senderType === 'system') {
+                        // Converter UTC para horário local
+                        const messageDate = new Date(msg.created_at + 'Z'); // Força interpretação como UTC
+                        this.addMessage(senderType, msg.message, messageDate);
+                        
+                        // Incrementar badge se chat fechado
+                        if (!this.isOpen) {
+                            this.incrementBadge();
+                        }
                     }
+                    
+                    this.lastMessageId = msg.id;
                 }
             });
             
@@ -513,6 +546,6 @@ class ChatWidget {
 // Inicializar widget quando DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
     window.chatWidget = new ChatWidget({
-        proxyUrl: 'http://localhost:9000'
+        proxyUrl: 'http://192.168.3.207:9000'
     });
 });

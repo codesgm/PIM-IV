@@ -4,10 +4,8 @@ services:
     container_name: pim-sqlserver
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=MyStrongPassword123!
+      - SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
-    ports:
-      - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
     networks:
@@ -20,9 +18,10 @@ services:
     container_name: pim-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=PimDB;User Id=sa;Password=MyStrongPassword123!;TrustServerCertificate=true;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=PimDB;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=true;
+      - ASPNETCORE_URLS=http://0.0.0.0:5000
     ports:
-      - "5000:5000"
+      - "${HOST_IP}:5000:5000"
     depends_on:
       - sqlserver
     networks:
@@ -36,8 +35,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ApiSettings__BaseUrl=http://api:5000
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
     ports:
-      - "5028:8080"
+      - "${HOST_IP}:5028:8080"
     depends_on:
       - api
     networks:
@@ -51,8 +51,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ApiSettings__BaseUrl=http://api:5000
+      - ProxySettings__BaseUrl=http://192.168.3.207:9000
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
     ports:
-      - "5030:8080"
+      - "${HOST_IP}:5030:8080"
     depends_on:
       - api
     networks:
@@ -68,7 +70,7 @@ services:
       - PROXY_PORT=9000
       - SESSION_TIMEOUT=3600
     ports:
-      - "9000:9000"
+      - "${HOST_IP}:9000:9000"
     depends_on:
       - api
     networks:
