@@ -39,6 +39,7 @@ namespace PimWeb.Models
         public DateTime UpdatedAt { get; set; }
         public DateTime? ResolvedAt { get; set; }
         public int MessagesCount { get; set; }
+        public string? LastMessage { get; set; }
     }
 
     public class ChatMessageResponseDto

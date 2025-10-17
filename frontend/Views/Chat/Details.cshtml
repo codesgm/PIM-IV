@@ -11,159 +11,177 @@
     }
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="h2 mb-1">Chat com @Model.Chat.UserName</h1>
-        <p class="text-muted mb-0">
-            <span class="badge @(Model.Chat.Status == "Active" ? "bg-success" : "bg-secondary") me-2">
-                @(Model.Chat.Status == "Active" ? "Ativo" : "Resolvido")
-            </span>
-            @Model.Chat.UserContact • @FormatLocalTime(Model.Chat.CreatedAt, "dd/MM/yyyy HH:mm")
-        </p>
-    </div>
-    <div>
-        <a href="@Url.Action("Index")" class="btn btn-outline-secondary me-2">
-            <i class="fas fa-arrow-left me-1"></i>Voltar
-        </a>
-        @if (Model.Chat.Status == "Active")
-        {
-            <form method="post" action="@Url.Action("Resolve", new { id = Model.Chat.Id })" class="d-inline">
-                <button type="submit" class="btn btn-success" onclick="return confirm('Tem certeza que deseja resolver este chat?')">
-                    <i class="fas fa-check me-1"></i>Resolver
-                </button>
-            </form>
-        }
-    </div>
-</div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="fas fa-check-circle me-1"></i>
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show">
-        <i class="fas fa-exclamation-triangle me-1"></i>
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<div class="row">
-    <div class="col-lg-8">
-        <!-- Área de Mensagens -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-comments me-2"></i>Conversa
-                    <span class="badge bg-secondary ms-2">@Model.Messages.Count mensagens</span>
-                </h5>
+<div class="d-flex h-100">
+    <!-- Sidebar com lista de chats -->
+    <div class="chat-sidebar">
+        <div class="sidebar-header">
+            <h5><i class="fas fa-comments me-2"></i>Chats Ativos</h5>
+        </div>
+        <div class="sidebar-content" id="chatsList">
+            <div class="text-center p-3">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p class="mb-0 mt-2">Carregando...</p>
             </div>
-            <div class="card-body" style="height: 400px; overflow-y: auto;" id="messages-container">
-                @if (Model.Messages.Any())
+        </div>
+    </div>
+
+    <!-- Conteúdo principal do chat -->
+    <div class="chat-main flex-grow-1">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 mb-1">Chat com @Model.Chat.UserName</h1>
+                <p class="text-muted mb-0">
+                    <span class="badge @(Model.Chat.Status == "Active" ? "bg-success" : "bg-secondary") me-2">
+                        @(Model.Chat.Status == "Active" ? "Ativo" : "Resolvido")
+                    </span>
+                    @Model.Chat.UserContact • @FormatLocalTime(Model.Chat.CreatedAt, "dd/MM/yyyy HH:mm")
+                </p>
+            </div>
+            <div>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+                @if (Model.Chat.Status == "Active")
                 {
-                    @foreach (var message in Model.Messages)
-                    {
-                        <div class="d-flex @(message.SenderType == "technician" ? "justify-content-end" : "justify-content-start") mb-3">
-                            <div class="message-bubble @(message.SenderType == "technician" ? "technician" : "user")" style="max-width: 70%;">
-                                <div class="message-content">
-                                    @message.Message
-                                </div>
-                                <div class="message-info">
-                                    <small class="text-muted">
-                                        @(message.SenderType == "technician" ? message.SenderName ?? "Técnico" : Model.Chat.UserName)
-                                        • @FormatLocalTime(message.CreatedAt)
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-center text-muted py-4">
-                        <i class="fas fa-comments fa-2x mb-2"></i>
-                        <p>Nenhuma mensagem ainda</p>
-                    </div>
+                    <form method="post" action="@Url.Action("Resolve", new { id = Model.Chat.Id })" class="d-inline">
+                        <button type="submit" class="btn btn-success" onclick="return confirm('Tem certeza que deseja resolver este chat?')">
+                            <i class="fas fa-check me-1"></i>Resolver
+                        </button>
+                    </form>
                 }
             </div>
         </div>
 
-        <!-- Formulário de Resposta -->
-        @if (Model.Chat.Status == "Active")
+        @if (TempData["SuccessMessage"] != null)
         {
-            <div class="card">
-                <div class="card-body">
-                    <form method="post" action="@Url.Action("SendMessage")" id="message-form">
-                        <input type="hidden" name="chatId" value="@Model.Chat.Id" />
-                        <div class="mb-3">
-                            <label for="message" class="form-label">Sua resposta</label>
-                            <textarea name="message" class="form-control" rows="3" 
-                                      placeholder="Digite sua resposta..." required></textarea>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Pressione Ctrl+Enter para enviar rapidamente
-                            </small>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-1"></i>Enviar Resposta
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle me-1"></i>
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
-        else
-        {
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-1"></i>
-                Este chat foi resolvido em @(Model.Chat.ResolvedAt.HasValue ? FormatLocalTime(Model.Chat.ResolvedAt.Value, "dd/MM/yyyy HH:mm") : "").
-            </div>
-        }
-    </div>
 
-    <div class="col-lg-4">
-        <!-- Informações do Chat -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-info-circle me-2"></i>Informações
-                </h5>
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <strong>Usuário:</strong><br>
-                    @Model.Chat.UserName
+        }
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Área de Mensagens -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-comments me-2"></i>Conversa
+                            <span class="badge bg-secondary ms-2">@Model.Messages.Count mensagens</span>
+                        </h5>
+                    </div>
+                    <div class="card-body" style="height: 400px; overflow-y: auto;" id="messages-container">
+                        @if (Model.Messages.Any())
+                        {
+                            @foreach (var message in Model.Messages)
+                            {
+                                <div class="d-flex @(message.SenderType == "technician" ? "justify-content-end" : "justify-content-start") mb-3">
+                                    <div class="message-bubble @(message.SenderType == "technician" ? "technician" : "user")" style="max-width: 70%;">
+                                        <div class="message-content">
+                                            @message.Message
+                                        </div>
+                                        <div class="message-info">
+                                            <small class="text-muted">
+                                                @(message.SenderType == "technician" ? message.SenderName ?? "Técnico" : Model.Chat.UserName)
+                                                • @FormatLocalTime(message.CreatedAt)
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-comments fa-2x mb-2"></i>
+                                <p>Nenhuma mensagem ainda</p>
+                            </div>
+                        }
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <strong>Contato:</strong><br>
-                    @Model.Chat.UserContact
-                </div>
-                <div class="mb-3">
-                    <strong>Origem:</strong><br>
-                    <span class="badge bg-info">@Model.Chat.Source.ToUpper()</span>
-                </div>
-                <div class="mb-3">
-                    <strong>Criado em:</strong><br>
-                    @FormatLocalTime(Model.Chat.CreatedAt, "dd/MM/yyyy HH:mm")
-                </div>
-                <div class="mb-3">
-                    <strong>Última atualização:</strong><br>
-                    @FormatLocalTime(Model.Chat.UpdatedAt, "dd/MM/yyyy HH:mm")
-                </div>
-                @if (!string.IsNullOrEmpty(Model.Chat.AssignedTechnicianName))
+
+                <!-- Formulário de Resposta -->
+                @if (Model.Chat.Status == "Active")
                 {
-                    <div class="mb-3">
-                        <strong>Técnico responsável:</strong><br>
-                        @Model.Chat.AssignedTechnicianName
+                    <div class="card">
+                        <div class="card-body">
+                            <form method="post" action="@Url.Action("SendMessage")" id="message-form">
+                                <input type="hidden" name="chatId" value="@Model.Chat.Id" />
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Sua resposta</label>
+                                    <textarea name="message" class="form-control" rows="3" 
+                                              placeholder="Digite sua resposta..." required></textarea>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Pressione Ctrl+Enter para enviar rapidamente
+                                    </small>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-1"></i>Enviar Resposta
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Este chat foi resolvido em @(Model.Chat.ResolvedAt.HasValue ? FormatLocalTime(Model.Chat.ResolvedAt.Value, "dd/MM/yyyy HH:mm") : "").
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Informações do Chat -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Informações
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Usuário:</strong><br>
+                            @Model.Chat.UserName
+                        </div>
+                        <div class="mb-3">
+                            <strong>Contato:</strong><br>
+                            @Model.Chat.UserContact
+                        </div>
+                        <div class="mb-3">
+                            <strong>Origem:</strong><br>
+                            <span class="badge bg-info">@Model.Chat.Source.ToUpper()</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Criado em:</strong><br>
+                            @FormatLocalTime(Model.Chat.CreatedAt, "dd/MM/yyyy HH:mm")
+                        </div>
+                        <div class="mb-3">
+                            <strong>Última atualização:</strong><br>
+                            @FormatLocalTime(Model.Chat.UpdatedAt, "dd/MM/yyyy HH:mm")
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Chat.AssignedTechnicianName))
+                        {
+                            <div class="mb-3">
+                                <strong>Técnico responsável:</strong><br>
+                                @Model.Chat.AssignedTechnicianName
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -172,6 +190,70 @@
 @section Scripts {
     <script>
         let lastMessageId = @(Model.Messages.Any() ? Model.Messages.Max(m => m.Id) : 0);
+        let currentChatId = @Model.Chat.Id;
+        
+        // Carregar lista de chats ativos
+        async function loadActiveChats() {
+            try {
+                const response = await fetch('@Url.Action("GetActiveChats", "Chat")');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderChatsList(data.data);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar chats:', error);
+            }
+        }
+        
+        // Renderizar lista de chats
+        function renderChatsList(chats) {
+            const container = document.getElementById('chatsList');
+            
+            if (chats.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center p-3 text-muted">
+                        <i class="fas fa-comments fa-2x mb-2"></i>
+                        <p class="mb-0">Nenhum chat ativo</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = chats.map(chat => `
+                <div class="chat-item ${chat.id === currentChatId ? 'active' : ''}" onclick="navigateToChat(${chat.id})">
+                    <div class="chat-item-header">
+                        <strong>${chat.userName}</strong>
+                        <small class="text-muted">${formatTime(chat.updatedAt)}</small>
+                    </div>
+                    <div class="chat-item-preview">
+                        ${chat.lastMessage || 'Sem mensagens'}
+                    </div>
+                    <div class="chat-item-info">
+                        <span class="badge bg-info">${chat.source}</span>
+                        ${chat.messagesCount > 0 ? `<span class="badge bg-secondary">${chat.messagesCount}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Navegar para outro chat
+        function navigateToChat(chatId) {
+            if (chatId !== currentChatId) {
+                window.location.href = `/Chat/Details/${chatId}`;
+            }
+        }
+        
+        // Formatar tempo
+        function formatTime(dateString) {
+            const date = new Date(dateString + 'Z');
+            return date.toLocaleString('pt-BR', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
         
         // Polling para novas mensagens
         setInterval(async function() {
@@ -187,7 +269,7 @@
                             const messageDiv = document.createElement('div');
                             messageDiv.className = `d-flex ${message.senderType === 'technician' ? 'justify-content-end' : 'justify-content-start'} mb-3`;
                             
-                            const date = new Date(message.createdAt + 'Z'); // Força interpretação como UTC
+                            const date = new Date(message.createdAt + 'Z');
                             const timeStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + 
                                           date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                             
@@ -207,19 +289,24 @@
                             lastMessageId = Math.max(lastMessageId, message.id);
                         });
                         
-                        // Scroll para o final
                         container.scrollTop = container.scrollHeight;
                     }
+                    
+                    // Atualizar lista de chats
+                    loadActiveChats();
                 } catch (error) {
                     console.error('Erro ao buscar mensagens:', error);
                 }
             }
         }, 3000);
         
-        // Scroll inicial para o final
+        // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('messages-container');
             container.scrollTop = container.scrollHeight;
+            
+            // Carregar lista inicial de chats
+            loadActiveChats();
         });
         
         // Ctrl+Enter para enviar
@@ -231,6 +318,84 @@
     </script>
     
     <style>
+        .d-flex.h-100 {
+            height: calc(100vh - 120px) !important;
+        }
+        
+        .chat-sidebar {
+            width: 300px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: white;
+        }
+        
+        .sidebar-header h5 {
+            margin: 0;
+            color: #334155;
+        }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .chat-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .chat-item:hover {
+            background: #f1f5f9;
+        }
+        
+        .chat-item.active {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .chat-item.active .text-muted {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        
+        .chat-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .chat-item-preview {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .chat-item.active .chat-item-preview {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .chat-item-info {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .chat-main {
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
         .message-bubble {
             padding: 12px 16px;
             border-radius: 18px;
