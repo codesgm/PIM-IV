@@ -56,5 +56,11 @@ namespace PimWeb.Services
             var user = GetCurrentUser();
             return user?.PerfilAcesso == PerfilAcesso.Administrador;
         }
+
+        public bool IsTechnician()
+        {
+            var user = GetCurrentUser();
+            return user?.PerfilAcesso == PerfilAcesso.Tecnico;
+        }
     }
 }

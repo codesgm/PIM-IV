@@ -11,6 +11,8 @@ namespace PimApi.Data
         
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Faq> Faqs { get; set; }
+        public DbSet<Chat> Chats { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +45,44 @@ namespace PimApi.Data
                 entity.Property(e => e.Categoria).HasConversion<int>();
                 entity.Property(e => e.Ativo).HasDefaultValue(true);
                 entity.Property(e => e.DataCriacao).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // Configuração da entidade Chat
+            modelBuilder.Entity<Chat>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                
+                entity.Property(e => e.UserName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.UserContact).HasMaxLength(100);
+                entity.Property(e => e.InitialMessage).IsRequired();
+                entity.Property(e => e.Status).HasConversion<int>();
+                entity.Property(e => e.Source).HasMaxLength(20);
+                
+                entity.HasOne(e => e.AssignedTechnician)
+                      .WithMany()
+                      .HasForeignKey(e => e.AssignedTechnicianId)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // Configuração da entidade ChatMessage
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                
+                entity.Property(e => e.SenderType).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Message).IsRequired();
+                
+                entity.HasOne(e => e.Chat)
+                      .WithMany(c => c.Messages)
+                      .HasForeignKey(e => e.ChatId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                      
+                entity.HasOne(e => e.Sender)
+                      .WithMany()
+                      .HasForeignKey(e => e.SenderId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

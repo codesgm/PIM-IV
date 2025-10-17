@@ -49,6 +49,7 @@ builder.Services.AddCors(options =>
 // Dependency Injection
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IChatAssignmentService, ChatAssignmentService>();
 
 var app = builder.Build();
 

@@ -21,6 +21,7 @@ builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<FaqService>();
+builder.Services.AddScoped<ChatService>();
 
 var app = builder.Build();
 

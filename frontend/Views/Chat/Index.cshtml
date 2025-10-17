@@ -1,0 +1,132 @@
+@inject PimWeb.Services.AuthService AuthService
+@model PimWeb.Models.ChatListViewModel
+@{
+    ViewData["Title"] = "Chats de Suporte";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1">Chats de Suporte</h1>
+        <p class="text-muted mb-0">Gerencie conversas com usuários do FAQ</p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="@Model.SearchTerm" placeholder="Nome do usuário ou mensagem...">
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">Todos</option>
+                    <option value="Active" selected="@(Model.StatusFilter == "Active")">Ativo</option>
+                    <option value="Resolved" selected="@(Model.StatusFilter == "Resolved")">Resolvido</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary d-block">
+                    <i class="fas fa-search me-1"></i>Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-1"></i>
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<!-- Lista de Chats -->
+@if (Model.Chats.Any())
+{
+    <div class="row">
+        @foreach (var chat in Model.Chats)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">@chat.UserName</h5>
+                            <span class="badge @(chat.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                @(chat.Status == "Active" ? "Ativo" : "Resolvido")
+                            </span>
+                        </div>
+                        
+                        <p class="text-muted small mb-2">@chat.UserContact</p>
+                        
+                        <p class="card-text">
+                            @(chat.InitialMessage.Length > 100 ? 
+                              chat.InitialMessage.Substring(0, 100) + "..." : 
+                              chat.InitialMessage)
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-comments me-1"></i>
+                                @chat.MessagesCount mensagens
+                            </small>
+                            <small class="text-muted">
+                                @chat.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </small>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(chat.AssignedTechnicianName))
+                        {
+                            <div class="mt-2">
+                                <small class="text-info">
+                                    <i class="fas fa-user me-1"></i>
+                                    @chat.AssignedTechnicianName
+                                </small>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="@Url.Action("Details", new { id = chat.Id })" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>Ver Conversa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <div class="mb-3">
+            <i class="fas fa-comments text-muted" style="font-size: 3rem;"></i>
+        </div>
+        <h4 class="text-muted">Nenhum chat encontrado</h4>
+        <p class="text-muted">
+            @if (!string.IsNullOrEmpty(Model.SearchTerm) || !string.IsNullOrEmpty(Model.StatusFilter))
+            {
+                <span>Tente ajustar os filtros de busca.</span>
+            }
+            else
+            {
+                <span>Aguardando usuários iniciarem conversas no FAQ.</span>
+            }
+        </p>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Auto-refresh da página a cada 30 segundos
+        setInterval(function() {
+            if (document.visibilityState === 'visible') {
+                location.reload();
+            }
+        }, 30000);
+    </script>
+}

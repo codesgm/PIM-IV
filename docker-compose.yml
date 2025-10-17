@@ -58,6 +58,22 @@ services:
     networks:
       - pim-network
 
+  proxy:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    container_name: pim-proxy
+    environment:
+      - BACKEND_API_URL=http://api:5000
+      - PROXY_PORT=9000
+      - SESSION_TIMEOUT=3600
+    ports:
+      - "9000:9000"
+    depends_on:
+      - api
+    networks:
+      - pim-network
+
 volumes:
   sqlserver_data:
 
