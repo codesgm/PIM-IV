@@ -6,6 +6,8 @@ services:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
+    ports:
+      - "1433:1433"  # Apenas localhost, não exposto na rede
     volumes:
       - sqlserver_data:/var/opt/mssql
     networks:
@@ -51,7 +53,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ApiSettings__BaseUrl=http://api:5000
-      - ProxySettings__BaseUrl=http://192.168.3.207:9000
+      - ProxySettings__BaseUrl=http://192.168.0.152:9000
       - ASPNETCORE_URLS=http://0.0.0.0:8080
     ports:
       - "${HOST_IP}:5030:8080"
@@ -67,12 +69,31 @@ services:
     container_name: pim-proxy
     environment:
       - BACKEND_API_URL=http://api:5000
+      - BOT_IA_URL=http://bot-ia:8001
       - PROXY_PORT=9000
       - SESSION_TIMEOUT=3600
     ports:
       - "${HOST_IP}:9000:9000"
     depends_on:
       - api
+      - bot-ia
+    networks:
+      - pim-network
+
+  bot-ia:
+    build:
+      context: ./bot-ia
+      dockerfile: Dockerfile
+    container_name: pim-bot-ia
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - KNOWLEDGE_FILE_PATH=/app/knowledge/base_conhecimento.md
+      - API_PORT=8001
+      - LOG_LEVEL=INFO
+      - MAX_TOKENS=1000
+      - TEMPERATURE=0.7
+    ports:
+      - "${HOST_IP}:8001:8001"
     networks:
       - pim-network
 

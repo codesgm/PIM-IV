@@ -1,7 +1,7 @@
 class ChatWidget {
     constructor(config = {}) {
         this.config = {
-            proxyUrl: config.proxyUrl || 'http://192.168.3.207:9000',
+            proxyUrl: config.proxyUrl || 'http://192.168.0.152:9000',
             pollingInterval: config.pollingInterval || 3000,
             maxMessageLength: config.maxMessageLength || 500,
             welcomeMessage: config.welcomeMessage || 'Olá! Como posso ajudá-lo hoje?',
@@ -546,6 +546,6 @@ class ChatWidget {
 // Inicializar widget quando DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
     window.chatWidget = new ChatWidget({
-        proxyUrl: 'http://192.168.3.207:9000'
+        proxyUrl: 'http://192.168.0.152:9000'
     });
 });
