@@ -5,126 +5,122 @@ class ChatWidget {
             pollingInterval: config.pollingInterval || 3000,
             maxMessageLength: config.maxMessageLength || 500,
             welcomeMessage: config.welcomeMessage || 'Olá! Como posso ajudá-lo hoje?',
-            ...config
+            showEscalationButton: config.showEscalationButton !== false
         };
         
         this.isOpen = false;
         this.sessionId = null;
+        this.chatId = null; // Só definido após escalação
+        this.chatState = 'AI_ACTIVE'; // AI_ACTIVE, ESCALATING, HUMAN_ASSIGNED
         this.lastMessageId = 0;
-        this.pollingTimer = null;
-        this.unreadCount = 0;
-        this.userIdentified = false;
         this.userData = null;
+        this.pollingInterval = null;
         
         this.init();
     }
     
     init() {
         this.createWidget();
-        this.bindEvents();
+        this.loadUserData();
         this.loadSession();
-        
-        // Carregar dados do usuário e verificar identificação
-        const userData = this.loadUserData();
-        console.log('Dados do usuário carregados:', userData);
-        console.log('Usuário identificado:', this.userIdentified);
     }
     
     createWidget() {
-        const widget = document.createElement('div');
-        widget.className = 'chat-widget';
-        widget.innerHTML = `
-            <div class="identification-modal" id="identificationModal">
-                <div class="identification-form">
-                    <div class="form-header">
-                        <h3>Iniciar Conversa</h3>
-                        <p>Para melhor atendimento, precisamos de algumas informações:</p>
-                    </div>
-                    <form id="identificationForm">
-                        <div class="form-group">
-                            <label for="userName">Nome completo *</label>
-                            <input type="text" id="userName" class="form-input" placeholder="Seu nome completo" maxlength="100" required>
-                            <div class="validation-error" id="nameError"></div>
+        // Widget HTML
+        const widgetHTML = `
+            <div id="chat-widget" class="chat-widget">
+                <div id="chat-button" class="chat-button">
+                    <i class="fas fa-comments"></i>
+                    <span id="chat-badge" class="chat-badge" style="display: none;">0</span>
+                </div>
+                
+                <div id="chat-container" class="chat-container">
+                    <div class="chat-header">
+                        <div class="chat-title">
+                            <i class="fas fa-headset"></i>
+                            <span>Suporte MidTalk</span>
+                            <div id="chat-state-indicator" class="chat-state-indicator state-ai">
+                                🤖 IA Ativa
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="userEmail">Email *</label>
-                            <input type="email" id="userEmail" class="form-input" placeholder="seu@email.com" maxlength="255" required>
-                            <div class="validation-error" id="emailError"></div>
+                        <button id="chat-close" class="chat-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="identification-modal" class="identification-modal">
+                        <div class="identification-content">
+                            <h3>Identificação</h3>
+                            <p>Para iniciar o atendimento, precisamos de algumas informações:</p>
+                            <form id="identification-form">
+                                <div class="form-group">
+                                    <label for="user-name">Nome completo *</label>
+                                    <input type="text" id="user-name" required minlength="2">
+                                </div>
+                                <div class="form-group">
+                                    <label for="user-email">E-mail *</label>
+                                    <input type="email" id="user-email" required>
+                                </div>
+                                <button type="submit" class="btn-primary">Iniciar Chat</button>
+                            </form>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="form-button" id="startChatBtn">
-                                <i class="fas fa-comments"></i>
-                                Iniciar Chat
-                            </button>
+                    </div>
+                    
+                    <div id="chat-messages" class="chat-messages"></div>
+                    
+                    <div id="chat-loading" class="chat-loading" style="display: none;">
+                        <div class="loading-dots">
+                            <span></span><span></span><span></span>
                         </div>
-                    </form>
-                </div>
-            </div>
-            <div class="chat-modal" id="chatModal">
-                <div class="chat-header">
-                    <div>
-                        <div class="chat-title">Suporte MidTalk</div>
-                        <div class="chat-status" id="chatStatus">Conectando...</div>
+                        <span>IA está pensando...</span>
                     </div>
-                    <button class="chat-close" id="chatClose">×</button>
-                </div>
-                <div class="chat-messages" id="chatMessages">
-                    <div class="chat-loading" id="chatLoading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span style="margin-left: 8px;">Iniciando conversa...</span>
-                    </div>
-                </div>
-                <div class="typing-indicator" id="typingIndicator">
-                    <div class="typing-dots">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
-                    <span style="margin-left: 8px; font-size: 12px; color: #64748b;">Técnico digitando...</span>
-                </div>
-                <div class="chat-input">
-                    <div class="input-group">
-                        <textarea class="message-input" id="messageInput" 
-                                placeholder="Digite sua mensagem..." 
-                                rows="1" maxlength="${this.config.maxMessageLength}"></textarea>
-                        <button class="send-button" id="sendButton">
+                    
+                    <div class="chat-input">
+                        <textarea id="chat-input-field" placeholder="Digite sua mensagem..." rows="1"></textarea>
+                        <button id="chat-send" disabled>
                             <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="escalation-panel" class="escalation-panel" style="display: none;">
+                        <button id="escalate-btn" class="escalate-btn">
+                            👨‍💻 Falar com técnico
                         </button>
                     </div>
                 </div>
             </div>
-            <button class="chat-button" id="chatButton">
-                <i class="fas fa-comments"></i>
-                <div class="chat-badge" id="chatBadge">0</div>
-            </button>
         `;
         
-        document.body.appendChild(widget);
-        this.elements = {
-            button: document.getElementById('chatButton'),
-            modal: document.getElementById('chatModal'),
-            close: document.getElementById('chatClose'),
-            messages: document.getElementById('chatMessages'),
-            input: document.getElementById('messageInput'),
-            sendButton: document.getElementById('sendButton'),
-            status: document.getElementById('chatStatus'),
-            loading: document.getElementById('chatLoading'),
-            badge: document.getElementById('chatBadge'),
-            typing: document.getElementById('typingIndicator'),
-            identificationModal: document.getElementById('identificationModal'),
-            identificationForm: document.getElementById('identificationForm'),
-            userNameInput: document.getElementById('userName'),
-            userEmailInput: document.getElementById('userEmail'),
-            startChatBtn: document.getElementById('startChatBtn'),
-            nameError: document.getElementById('nameError'),
-            emailError: document.getElementById('emailError')
-        };
+        document.body.insertAdjacentHTML('beforeend', widgetHTML);
+        this.bindEvents();
     }
     
     bindEvents() {
+        this.elements = {
+            widget: document.getElementById('chat-widget'),
+            button: document.getElementById('chat-button'),
+            container: document.getElementById('chat-container'),
+            close: document.getElementById('chat-close'),
+            messages: document.getElementById('chat-messages'),
+            input: document.getElementById('chat-input-field'),
+            sendButton: document.getElementById('chat-send'),
+            loading: document.getElementById('chat-loading'),
+            badge: document.getElementById('chat-badge'),
+            identificationModal: document.getElementById('identification-modal'),
+            identificationForm: document.getElementById('identification-form'),
+            userNameInput: document.getElementById('user-name'),
+            userEmailInput: document.getElementById('user-email'),
+            stateIndicator: document.getElementById('chat-state-indicator'),
+            escalationPanel: document.getElementById('escalation-panel'),
+            escalateBtn: document.getElementById('escalate-btn')
+        };
+        
+        // Event listeners
         this.elements.button.addEventListener('click', () => this.toggleChat());
         this.elements.close.addEventListener('click', () => this.closeChat());
         this.elements.sendButton.addEventListener('click', () => this.sendMessage());
+        this.elements.escalateBtn.addEventListener('click', () => this.requestEscalation());
+        this.elements.identificationForm.addEventListener('submit', (e) => this.handleIdentification(e));
         
         this.elements.input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -135,138 +131,148 @@ class ChatWidget {
         
         this.elements.input.addEventListener('input', () => {
             this.autoResize();
-        });
-        
-        // Event listeners para formulário de identificação
-        this.elements.identificationForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleIdentificationSubmit();
-        });
-        
-        this.elements.userNameInput.addEventListener('input', () => {
-            this.clearError('name');
-        });
-        
-        this.elements.userEmailInput.addEventListener('input', () => {
-            this.clearError('email');
+            this.elements.sendButton.disabled = !this.elements.input.value.trim();
         });
     }
     
-    autoResize() {
-        const input = this.elements.input;
-        input.style.height = 'auto';
-        input.style.height = Math.min(input.scrollHeight, 80) + 'px';
-    }
-    
-    async toggleChat() {
+    toggleChat() {
         if (this.isOpen) {
             this.closeChat();
         } else {
-            await this.openChat();
+            this.openChat();
         }
     }
     
-    async openChat() {
-        console.log('openChat chamado - userIdentified:', this.userIdentified);
-        console.log('userData:', this.userData);
-        
-        if (!this.userIdentified) {
-            console.log('Mostrando formulário de identificação');
-            this.showIdentificationForm();
-            return;
-        }
-        
-        console.log('Iniciando chat...');
+    openChat() {
         this.isOpen = true;
-        this.elements.button.classList.add('active');
-        this.elements.modal.classList.add('show');
+        this.elements.container.classList.add('open');
+        this.elements.button.style.display = 'none';
         this.clearBadge();
         
-        if (!this.sessionId) {
-            console.log('Chamando startChat...');
-            await this.startChat();
-        } else {
-            console.log('Sessão já existe, iniciando polling...');
-            this.elements.loading.style.display = 'none';
-            this.updateStatus('Online');
-            this.startPolling();
+        if (!this.userData) {
+            this.showIdentificationForm();
+        } else if (!this.sessionId) {
+            this.startChat();
         }
-        
-        this.elements.input.focus();
     }
     
     closeChat() {
         this.isOpen = false;
-        this.elements.button.classList.remove('active');
-        this.elements.modal.classList.remove('show');
-        this.stopPolling();
+        this.elements.container.classList.remove('open');
+        this.elements.button.style.display = 'flex';
+    }
+    
+    showIdentificationForm() {
+        this.elements.identificationModal.classList.add('show');
+        this.elements.userNameInput.focus();
+    }
+    
+    hideIdentificationForm() {
+        this.elements.identificationModal.classList.remove('show');
+    }
+    
+    async handleIdentification(e) {
+        e.preventDefault();
+        
+        const name = this.elements.userNameInput.value.trim();
+        const email = this.elements.userEmailInput.value.trim();
+        
+        if (!this.validateUserData(name, email)) {
+            return;
+        }
+        
+        this.userData = { name, email };
+        this.saveUserData();
+        this.hideIdentificationForm();
+        await this.startChat();
+    }
+    
+    validateUserData(name, email) {
+        if (name.length < 2) {
+            alert('Nome deve ter pelo menos 2 caracteres');
+            return false;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('E-mail inválido');
+            return false;
+        }
+        
+        return true;
     }
     
     async startChat() {
+        if (!this.userData) return;
+        
         try {
-            console.log('startChat iniciado');
-            console.log('Dados do usuário:', this.userData);
-            console.log('URL do proxy:', this.config.proxyUrl);
-            
             this.updateStatus('Conectando...');
+            this.showLoading();
             
             const response = await fetch(`${this.config.proxyUrl}/api/proxy/start-chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     user_name: this.userData.name,
                     user_email: this.userData.email,
-                    initial_message: 'Usuário iniciou conversa via FAQ'
+                    initial_message: `Usuário iniciou conversa via FAQ`
                 })
             });
             
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erro na resposta:', errorText);
-                throw new Error('Erro ao conectar com o suporte');
-            }
+            if (!response.ok) throw new Error('Erro ao iniciar chat');
             
             const data = await response.json();
-            console.log('Dados recebidos:', data);
-            
             this.sessionId = data.session_id;
+            this.chatState = 'AI_ACTIVE';
             this.saveSession();
             
-            this.elements.loading.style.display = 'none';
-            this.addMessage('system', `Olá ${this.userData.name}! ${this.config.welcomeMessage}`);
-            this.updateStatus('Online');
-            this.startPolling();
+            this.hideLoading();
+            this.addMessage('system', `Olá ${this.userData.name}! Conectando com nossa IA...`);
+            this.updateStateIndicator();
+            this.showEscalationPanel();
+            
+            // Processar resposta inicial da IA
+            console.log('Resposta inicial recebida:', data);
+            if (data.initial_response) {
+                console.log('Processando initial_response:', data.initial_response);
+                if (data.initial_response.type === 'ai') {
+                    this.handleAIResponse(data.initial_response);
+                } else if (data.initial_response.type === 'ai_with_escalation') {
+                    this.handleAIResponse(data.initial_response);
+                    this.addMessage('system', 'Posso escalar para um técnico se precisar de mais ajuda.');
+                } else if (data.initial_response.type === 'escalated') {
+                    this.handleEscalation(data.initial_response);
+                }
+            }
             
         } catch (error) {
-            console.error('Erro detalhado ao iniciar chat:', error);
-            this.elements.loading.style.display = 'none';
-            this.showError('Não foi possível conectar ao suporte. Tente novamente.');
-            this.updateStatus('Offline');
+            console.error('Erro ao iniciar chat:', error);
+            this.hideLoading();
+            this.addMessage('system', 'Erro ao conectar. Tente novamente.');
         }
     }
     
     async sendMessage() {
         const message = this.elements.input.value.trim();
-        if (!message || !this.sessionId) return;
+        console.log('sendMessage chamado:', { message, sessionId: this.sessionId });
+        if (!message || !this.sessionId) {
+            console.log('Mensagem vazia ou sessionId não encontrado');
+            return;
+        }
         
         this.elements.input.value = '';
         this.elements.sendButton.disabled = true;
         this.autoResize();
         
-        // Adicionar mensagem na UI imediatamente
+        // Adicionar mensagem do usuário
         this.addMessage('user', message);
         
         try {
+            this.showLoading();
+            
             const response = await fetch(`${this.config.proxyUrl}/api/proxy/send-message`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     session_id: this.sessionId,
                     message: message
@@ -274,49 +280,140 @@ class ChatWidget {
             });
             
             if (!response.ok) {
+                if (response.status === 404) {
+                    // Sessão expirou, limpar e reiniciar
+                    console.log('Sessão expirou, limpando localStorage');
+                    this.clearSession();
+                    this.sessionId = null;
+                    this.addMessage('system', 'Sessão expirou. Reiniciando chat...');
+                    await this.startChat();
+                    return;
+                }
                 throw new Error('Erro ao enviar mensagem');
+            }
+            
+            const data = await response.json();
+            this.hideLoading();
+            
+            // Processar resposta baseada no tipo
+            console.log('Resposta recebida:', data);
+            if (data.type === 'ai') {
+                this.handleAIResponse(data);
+            } else if (data.type === 'ai_with_escalation_question') {
+                this.handleAIResponse(data);
+                this.showEscalationQuestion();
+            } else if (data.type === 'escalation_question') {
+                this.handleEscalationQuestion(data);
+            } else if (data.type === 'escalated') {
+                this.handleEscalation(data);
+            } else if (data.type === 'human') {
+                // Mensagem enviada para técnico, aguardar resposta
+                this.addMessage('system', 'Mensagem enviada para o técnico...');
             }
             
         } catch (error) {
             console.error('Erro ao enviar mensagem:', error);
+            this.hideLoading();
             this.addMessage('system', 'Erro ao enviar mensagem. Tente novamente.');
         } finally {
             this.elements.sendButton.disabled = false;
         }
     }
     
-    async getMessages() {
-        if (!this.sessionId) return;
+    handleAIResponse(data) {
+        // Adicionar resposta da IA
+        this.addMessage('ai', data.message, new Date(), data.confidence);
+        
+        // Mostrar botão de escalação se confidence baixa
+        if (data.confidence < 0.7) {
+            this.addMessage('system', 'Não consegui resolver completamente. Quer falar com um técnico?');
+        }
+    }
+    
+    handleEscalation(data) {
+        this.chatState = 'HUMAN_ASSIGNED';
+        this.chatId = data.chat_id;
+        
+        // Mostrar mensagem de transferência
+        this.addMessage('system', data.message);
+        this.addMessage('system', `Técnico será atribuído em breve. Chat ID: ${data.chat_id}`);
+        
+        // Atualizar interface
+        this.updateStateIndicator();
+        this.hideEscalationPanel();
+        
+        // Iniciar polling para mensagens do técnico
+        this.startPolling();
+    }
+    
+    handleEscalationQuestion(data) {
+        // Adicionar pergunta do sistema
+        this.addMessage('system', data.message);
+        
+        // Mostrar botões de sim/não
+        this.showEscalationButtons();
+    }
+    
+    showEscalationQuestion() {
+        this.addMessage('system', 'Você deseja falar com um técnico?');
+        this.showEscalationButtons();
+    }
+    
+    showEscalationButtons() {
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'escalation-buttons';
+        buttonsDiv.innerHTML = `
+            <button class="btn-escalation-yes" onclick="window.chatWidget.confirmEscalation(true)">Sim</button>
+            <button class="btn-escalation-no" onclick="window.chatWidget.confirmEscalation(false)">Não</button>
+        `;
+        this.elements.messages.appendChild(buttonsDiv);
+        this.scrollToBottom();
+    }
+    
+    confirmEscalation(confirm) {
+        // Remover botões
+        const buttons = document.querySelector('.escalation-buttons');
+        if (buttons) buttons.remove();
+        
+        // Enviar resposta
+        const response = confirm ? 'Sim' : 'Não';
+        this.elements.input.value = response;
+        this.sendMessage();
+    }
+    
+    requestEscalation() {
+        this.elements.input.value = "quero falar com técnico";
+        this.sendMessage();
+    }
+    
+    async startPolling() {
+        if (this.pollingInterval) return; // Já está fazendo polling
+        
+        this.pollingInterval = setInterval(async () => {
+            if (this.chatState === 'HUMAN_ASSIGNED' && this.chatId) {
+                await this.pollMessages();
+            }
+        }, this.config.pollingInterval);
+    }
+    
+    async pollMessages() {
+        if (!this.sessionId || this.chatState !== 'HUMAN_ASSIGNED') return;
         
         try {
             const response = await fetch(`${this.config.proxyUrl}/api/proxy/messages/${this.sessionId}`);
-            
-            if (!response.ok) {
-                if (response.status === 404) {
-                    // Sessão expirada
-                    this.sessionId = null;
-                    this.clearSession();
-                    this.stopPolling();
-                    this.showError('Sessão expirada. Inicie uma nova conversa.');
-                    return;
-                }
-                throw new Error('Erro ao buscar mensagens');
-            }
+            if (!response.ok) return;
             
             const data = await response.json();
             
             data.messages.forEach(msg => {
                 if (msg.id > this.lastMessageId) {
-                    const senderType = msg.sender_type.toLowerCase() === 'user' ? 'user' : 'system';
+                    const senderType = msg.sender_type.toLowerCase() === 'user' ? 'user' : 'technician';
                     
-                    // Só adicionar mensagens do sistema/técnico no polling
-                    // Mensagens do usuário já são adicionadas imediatamente no sendMessage
-                    if (senderType === 'system') {
-                        // Converter UTC para horário local
-                        const messageDate = new Date(msg.created_at + 'Z'); // Força interpretação como UTC
+                    // Só adicionar mensagens do técnico no polling
+                    if (senderType === 'technician') {
+                        const messageDate = new Date(msg.created_at + 'Z');
                         this.addMessage(senderType, msg.message, messageDate);
                         
-                        // Incrementar badge se chat fechado
                         if (!this.isOpen) {
                             this.incrementBadge();
                         }
@@ -331,17 +428,39 @@ class ChatWidget {
         }
     }
     
-    addMessage(type, text, timestamp = new Date()) {
+    addMessage(type, text, timestamp = new Date(), confidence = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
         
         const bubble = document.createElement('div');
         bubble.className = 'message-bubble';
-        bubble.textContent = text;
+        
+        // Adicionar ícone baseado no tipo
+        let icon = '';
+        if (type === 'ai') {
+            icon = '🤖 ';
+            bubble.classList.add('ai-message');
+        } else if (type === 'technician') {
+            icon = '👨‍💻 ';
+            bubble.classList.add('technician-message');
+        } else if (type === 'system') {
+            icon = 'ℹ️ ';
+            bubble.classList.add('system-message');
+        }
+        
+        bubble.innerHTML = icon + text;
         
         const time = document.createElement('div');
         time.className = 'message-time';
         time.textContent = this.formatTime(timestamp);
+        
+        // Adicionar confidence score para mensagens IA
+        if (type === 'ai' && confidence !== null) {
+            const confidenceDiv = document.createElement('div');
+            confidenceDiv.className = 'confidence-score';
+            confidenceDiv.textContent = `Confiança: ${Math.round(confidence * 100)}%`;
+            messageDiv.appendChild(confidenceDiv);
+        }
         
         messageDiv.appendChild(bubble);
         messageDiv.appendChild(time);
@@ -350,74 +469,109 @@ class ChatWidget {
         this.scrollToBottom();
     }
     
-    showError(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'chat-error';
-        errorDiv.innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i>
-            <span style="margin-left: 8px;">${message}</span>
-        `;
-        this.elements.messages.appendChild(errorDiv);
-        this.scrollToBottom();
+    updateStateIndicator() {
+        const indicator = this.elements.stateIndicator;
+        
+        if (this.chatState === 'AI_ACTIVE') {
+            indicator.textContent = '🤖 IA Ativa';
+            indicator.className = 'chat-state-indicator state-ai';
+        } else if (this.chatState === 'HUMAN_ASSIGNED') {
+            indicator.textContent = '👨‍💻 Técnico Atribuído';
+            indicator.className = 'chat-state-indicator state-human';
+        }
+    }
+    
+    showEscalationPanel() {
+        if (this.config.showEscalationButton && this.chatState === 'AI_ACTIVE') {
+            this.elements.escalationPanel.style.display = 'block';
+        }
+    }
+    
+    hideEscalationPanel() {
+        this.elements.escalationPanel.style.display = 'none';
+    }
+    
+    showLoading() {
+        this.elements.loading.style.display = 'flex';
+    }
+    
+    hideLoading() {
+        this.elements.loading.style.display = 'none';
+    }
+    
+    updateStatus(status) {
+        // Pode ser usado para mostrar status na interface
+        console.log('Status:', status);
     }
     
     scrollToBottom() {
         this.elements.messages.scrollTop = this.elements.messages.scrollHeight;
     }
     
-    updateStatus(status) {
-        this.elements.status.textContent = status;
-    }
-    
-    startPolling() {
-        this.stopPolling();
-        this.pollingTimer = setInterval(() => {
-            this.getMessages();
-        }, this.config.pollingInterval);
-    }
-    
-    stopPolling() {
-        if (this.pollingTimer) {
-            clearInterval(this.pollingTimer);
-            this.pollingTimer = null;
-        }
+    autoResize() {
+        const input = this.elements.input;
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
     }
     
     incrementBadge() {
-        this.unreadCount++;
-        this.elements.badge.textContent = this.unreadCount;
-        this.elements.badge.classList.add('show');
+        const badge = this.elements.badge;
+        const count = parseInt(badge.textContent) + 1;
+        badge.textContent = count;
+        badge.style.display = 'block';
     }
     
     clearBadge() {
-        this.unreadCount = 0;
-        this.elements.badge.classList.remove('show');
+        this.elements.badge.style.display = 'none';
+        this.elements.badge.textContent = '0';
     }
     
-    getUserName() {
-        let userName = localStorage.getItem('chat_user_name');
-        if (!userName) {
-            userName = `Usuário_${Math.random().toString(36).substr(2, 9)}`;
-            localStorage.setItem('chat_user_name', userName);
+    // Métodos de persistência
+    saveUserData() {
+        if (this.userData) {
+            localStorage.setItem('chat_user_data', JSON.stringify(this.userData));
         }
-        return userName;
+    }
+    
+    loadUserData() {
+        const data = localStorage.getItem('chat_user_data');
+        if (data) {
+            this.userData = JSON.parse(data);
+        }
     }
     
     saveSession() {
         if (this.sessionId) {
             localStorage.setItem('chat_session_id', this.sessionId);
             localStorage.setItem('chat_last_message_id', this.lastMessageId.toString());
+            localStorage.setItem('chat_state', this.chatState);
+            if (this.chatId) {
+                localStorage.setItem('chat_id', this.chatId.toString());
+            }
         }
     }
     
     loadSession() {
         this.sessionId = localStorage.getItem('chat_session_id');
         this.lastMessageId = parseInt(localStorage.getItem('chat_last_message_id') || '0');
+        this.chatState = localStorage.getItem('chat_state') || 'AI_ACTIVE';
+        const chatId = localStorage.getItem('chat_id');
+        if (chatId) {
+            this.chatId = parseInt(chatId);
+        }
+        
+        // Se tem sessão ativa e foi escalado, iniciar polling
+        if (this.sessionId && this.chatState === 'HUMAN_ASSIGNED') {
+            this.updateStateIndicator();
+            this.startPolling();
+        }
     }
     
     clearSession() {
         localStorage.removeItem('chat_session_id');
         localStorage.removeItem('chat_last_message_id');
+        localStorage.removeItem('chat_state');
+        localStorage.removeItem('chat_id');
     }
     
     formatTime(date) {
@@ -425,121 +579,6 @@ class ChatWidget {
             hour: '2-digit',
             minute: '2-digit'
         });
-    }
-    
-    // Métodos de identificação
-    showIdentificationForm() {
-        this.elements.identificationModal.classList.add('show');
-        this.elements.userNameInput.focus();
-        
-        // Preencher com dados salvos se existirem
-        const savedData = this.loadUserData();
-        if (savedData) {
-            this.elements.userNameInput.value = savedData.name || '';
-            this.elements.userEmailInput.value = savedData.email || '';
-        }
-    }
-    
-    hideIdentificationForm() {
-        this.elements.identificationModal.classList.remove('show');
-    }
-    
-    validateUserData(name, email) {
-        const errors = {};
-        
-        // Validar nome
-        if (!name || name.trim().length < 2) {
-            errors.name = 'Nome deve ter pelo menos 2 caracteres';
-        } else if (name.trim().length > 100) {
-            errors.name = 'Nome deve ter no máximo 100 caracteres';
-        }
-        
-        // Validar email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!email || !emailRegex.test(email)) {
-            errors.email = 'Email deve ter um formato válido';
-        } else if (email.length > 255) {
-            errors.email = 'Email deve ter no máximo 255 caracteres';
-        }
-        
-        return {
-            valid: Object.keys(errors).length === 0,
-            errors: errors
-        };
-    }
-    
-    showError(field, message) {
-        const errorElement = field === 'name' ? this.elements.nameError : this.elements.emailError;
-        const inputElement = field === 'name' ? this.elements.userNameInput : this.elements.userEmailInput;
-        
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-        inputElement.classList.add('error');
-    }
-    
-    clearError(field) {
-        const errorElement = field === 'name' ? this.elements.nameError : this.elements.emailError;
-        const inputElement = field === 'name' ? this.elements.userNameInput : this.elements.userEmailInput;
-        
-        errorElement.style.display = 'none';
-        inputElement.classList.remove('error');
-    }
-    
-    handleIdentificationSubmit() {
-        const name = this.elements.userNameInput.value.trim();
-        const email = this.elements.userEmailInput.value.trim();
-        
-        // Limpar erros anteriores
-        this.clearError('name');
-        this.clearError('email');
-        
-        // Validar dados
-        const validation = this.validateUserData(name, email);
-        
-        if (!validation.valid) {
-            // Mostrar erros
-            if (validation.errors.name) {
-                this.showError('name', validation.errors.name);
-            }
-            if (validation.errors.email) {
-                this.showError('email', validation.errors.email);
-            }
-            return;
-        }
-        
-        // Salvar dados e continuar
-        this.saveUserData(name, email);
-        this.hideIdentificationForm();
-        this.openChat();
-    }
-    
-    saveUserData(name, email) {
-        const userData = { name, email };
-        localStorage.setItem('chat_user_data', JSON.stringify(userData));
-        this.userData = userData;
-        this.userIdentified = true;
-    }
-    
-    loadUserData() {
-        try {
-            const saved = localStorage.getItem('chat_user_data');
-            if (saved) {
-                const userData = JSON.parse(saved);
-                // Validar dados salvos
-                const validation = this.validateUserData(userData.name, userData.email);
-                if (validation.valid) {
-                    this.userData = userData;
-                    this.userIdentified = true;
-                    return userData;
-                }
-            }
-        } catch (e) {
-            console.warn('Erro ao carregar dados do usuário:', e);
-        }
-        
-        this.userData = null;
-        this.userIdentified = false;
-        return null;
     }
 }
 
