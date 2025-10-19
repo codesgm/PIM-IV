@@ -68,6 +68,25 @@ async def reload_knowledge():
             message=f"Erro: {str(e)}"
         )
 
+@app.post("/api/ai/update-knowledge")
+async def update_knowledge():
+    """Atualiza a base de conhecimento com FAQs do backend"""
+    try:
+        logger.info("Solicitação de atualização da base de conhecimento")
+        
+        success = knowledge_service.update_faq_knowledge()
+        
+        return {
+            "success": success,
+            "message": "Base de conhecimento atualizada com sucesso" if success else "Erro ao atualizar base de conhecimento"
+        }
+    except Exception as e:
+        logger.error(f"Erro ao atualizar conhecimento: {e}")
+        return {
+            "success": False,
+            "message": f"Erro: {str(e)}"
+        }
+
 @app.on_event("startup")
 async def startup_event():
     """Evento executado na inicialização"""

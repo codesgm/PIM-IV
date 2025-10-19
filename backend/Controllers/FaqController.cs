@@ -285,5 +285,27 @@ namespace PimApi.Controllers
                 return StatusCode(500, ApiResponseDto<List<FaqResponseDto>>.ErrorResult("Erro interno do servidor"));
             }
         }
+
+        [HttpGet("export")]
+        public async Task<ActionResult> ExportFaqs()
+        {
+            try
+            {
+                var faqs = await _context.Faqs
+                    .Where(f => f.Ativo)
+                    .Select(f => new {
+                        f.Pergunta,
+                        f.Resposta,
+                        f.Categoria
+                    })
+                    .ToListAsync();
+
+                return Ok(faqs);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Erro ao exportar FAQs");
+            }
+        }
     }
 }
