@@ -14,7 +14,7 @@ class EscalationEngine:
     ]
     
     CONFIDENCE_THRESHOLD = 0.4
-    MAX_AI_ATTEMPTS = 5
+    MAX_AI_ATTEMPTS = 10
     TIMEOUT_MINUTES = 5
     
     def should_escalate(self, session: ProxySession, message: str, ai_confidence: float) -> Tuple[bool, str]:

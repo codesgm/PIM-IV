@@ -24,30 +24,49 @@ class GeminiService:
         except Exception as e:
             logger.error(f"Erro ao inicializar Gemini: {e}")
     
-    def _create_prompt(self, question: str) -> str:
+    def _create_prompt(self, question: str, user_name: str = None) -> str:
         """Cria o prompt contextualizado para o Gemini"""
         context = knowledge_service.get_context()
         
-        prompt = f"""Você é um assistente de suporte técnico especializado no sistema MidTalk.
+        user_greeting = f"O usuário se chama {user_name}. " if user_name else ""
+        
+    def _create_prompt(self, question: str, user_name: str = None) -> str:
+        """Cria o prompt contextualizado para o Gemini"""
+        context = knowledge_service.get_context()
+        
+        user_greeting = f"O usuário se chama {user_name}. " if user_name else ""
+        
+        prompt = f"""Você é um assistente virtual amigável e prestativo do sistema MidTalk.
+
+PERSONALIDADE:
+- Seja sempre simpático, cordial e acolhedor
+- Use um tom conversacional e amigável
+- Demonstre empatia e paciência
+- Seja positivo e encorajador
+- Use expressões como "Fico feliz em ajudar!", "Claro!", "Com prazer!"
+- {user_greeting}Quando souber o nome, use-o de forma natural na conversa
+- NÃO use emojis nas respostas
 
 INSTRUÇÕES:
 - Responda sempre em português brasileiro
-- Seja claro, profissional e prestativo
+- Seja claro e didático, explicando de forma simples
 - Use apenas as informações da base de conhecimento fornecida
-- Se não souber a resposta, diga que não tem essa informação específica
-- Mantenha respostas concisas mas completas
-- Não invente informações que não estão na base de conhecimento
+- Se não souber a resposta, seja honesto mas ofereça alternativas
+- Mantenha respostas úteis e acessíveis
+- Responda diretamente à pergunta feita, sem cumprimentos desnecessários
+- Só cumprimente se for claramente uma saudação inicial
+- Evite usar emojis ou símbolos especiais
 
 BASE DE CONHECIMENTO:
 {context}
 
 PERGUNTA DO USUÁRIO: {question}
 
-RESPOSTA:"""
+RESPOSTA (seja direto e útil, sem emojis):"""
         
         return prompt
     
-    async def ask_question(self, question: str) -> Dict[str, Any]:
+    async def ask_question(self, question: str, user_name: str = None) -> Dict[str, Any]:
         """Faz uma pergunta para o Gemini e retorna a resposta"""
         try:
             if not self.model:
@@ -64,7 +83,7 @@ RESPOSTA:"""
                     "error": "Base de conhecimento não carregada"
                 }
             
-            prompt = self._create_prompt(question)
+            prompt = self._create_prompt(question, user_name)
             
             response = self.model.generate_content(
                 prompt,

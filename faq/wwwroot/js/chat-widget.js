@@ -40,13 +40,15 @@ class ChatWidget {
                         <div class="chat-title">
                             <i class="fas fa-headset"></i>
                             <span>Suporte MidTalk</span>
-                            <div id="chat-state-indicator" class="chat-state-indicator state-ai">
-                                🤖 IA Ativa
-                            </div>
                         </div>
                         <button id="chat-close" class="chat-close">
                             <i class="fas fa-times"></i>
                         </button>
+                    </div>
+                    
+                    <div id="chat-loading-bar" class="chat-loading-bar" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <span>IA está pensando...</span>
                     </div>
                     
                     <div id="identification-modal" class="identification-modal">
@@ -106,12 +108,12 @@ class ChatWidget {
             input: document.getElementById('chat-input-field'),
             sendButton: document.getElementById('chat-send'),
             loading: document.getElementById('chat-loading'),
+            loadingBar: document.getElementById('chat-loading-bar'),
             badge: document.getElementById('chat-badge'),
             identificationModal: document.getElementById('identification-modal'),
             identificationForm: document.getElementById('identification-form'),
             userNameInput: document.getElementById('user-name'),
             userEmailInput: document.getElementById('user-email'),
-            stateIndicator: document.getElementById('chat-state-indicator'),
             escalationPanel: document.getElementById('escalation-panel'),
             escalateBtn: document.getElementById('escalate-btn')
         };
@@ -229,7 +231,6 @@ class ChatWidget {
             
             this.hideLoading();
             this.addMessage('system', `Olá ${this.userData.name}! Conectando com nossa IA...`);
-            this.updateStateIndicator();
             this.showEscalationPanel();
             
             // Processar resposta inicial da IA
@@ -343,7 +344,6 @@ class ChatWidget {
         this.addMessage('system', data.message);
         
         // Atualizar interface
-        this.updateStateIndicator();
         this.hideEscalationPanel();
         
         // Iniciar polling para mensagens do técnico
@@ -496,11 +496,11 @@ class ChatWidget {
     }
     
     showLoading() {
-        this.elements.loading.style.display = 'flex';
+        this.elements.loadingBar.style.display = 'flex';
     }
     
     hideLoading() {
-        this.elements.loading.style.display = 'none';
+        this.elements.loadingBar.style.display = 'none';
     }
     
     updateStatus(status) {
@@ -566,7 +566,6 @@ class ChatWidget {
         
         // Se tem sessão ativa e foi escalado, iniciar polling
         if (this.sessionId && this.chatState === 'HUMAN_ASSIGNED') {
-            this.updateStateIndicator();
             this.startPolling();
         }
     }

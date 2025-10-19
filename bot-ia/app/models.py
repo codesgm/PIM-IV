@@ -3,6 +3,7 @@ from typing import Optional
 
 class QuestionRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=1000, description="Pergunta do usuário")
+    user_name: Optional[str] = Field(None, description="Nome do usuário")
 
 class AnswerResponse(BaseModel):
     answer: str = Field(..., description="Resposta da IA")

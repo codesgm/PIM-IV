@@ -31,7 +31,11 @@ class ProxyService:
             user_email=user_email,
             created_at=now,
             last_activity=now,
-            state=ChatState.AI_ACTIVE
+            state=ChatState.AI_ACTIVE,
+            ai_attempts=0,  # Garantir que inicia com 0
+            last_ai_confidence=0.0,
+            escalation_reason=None,
+            escalated_at=None
         )
         
         self.sessions[session_id] = session
@@ -63,7 +67,7 @@ class ProxyService:
             return await self._ask_escalation_confirmation(session, message)
         
         # Enviar para IA
-        ai_response = await ai_service.ask_ai(message)
+        ai_response = await ai_service.ask_ai(message, session.user_name)
         session.ai_attempts += 1
         session.last_ai_confidence = ai_response.confidence
         

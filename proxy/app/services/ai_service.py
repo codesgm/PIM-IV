@@ -11,16 +11,20 @@ class AIService:
         self.bot_ia_url = "http://bot-ia:8001"  # URL interna do container
         self.client = httpx.AsyncClient(timeout=30.0)
     
-    async def ask_ai(self, question: str) -> AIResponse:
+    async def ask_ai(self, question: str, user_name: str = None) -> AIResponse:
         """
         Faz uma pergunta para a IA e retorna a resposta
         """
         try:
             logger.info(f"Enviando pergunta para IA: {question[:100]}...")
             
+            payload = {"question": question}
+            if user_name:
+                payload["user_name"] = user_name
+            
             response = await self.client.post(
                 f"{self.bot_ia_url}/api/ai/ask",
-                json={"question": question},
+                json=payload,
                 headers={"Content-Type": "application/json"}
             )
             

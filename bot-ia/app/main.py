@@ -40,7 +40,7 @@ async def ask_question(request: QuestionRequest):
     try:
         logger.info(f"Pergunta recebida: {request.question[:100]}...")
         
-        result = await gemini_service.ask_question(request.question)
+        result = await gemini_service.ask_question(request.question, request.user_name)
         
         return AnswerResponse(
             answer=result["answer"],
