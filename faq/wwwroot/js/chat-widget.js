@@ -15,7 +15,6 @@ class ChatWidget {
         this.lastMessageId = 0;
         this.userData = null;
         this.pollingInterval = null;
-        this.technicianNotified = false; // Flag para controlar notificação única
         
         this.init();
     }
@@ -86,7 +85,7 @@ class ChatWidget {
                     </div>
                     
                     <div id="escalation-panel" class="escalation-panel" style="display: none;">
-                        <button id="escalate-btn" class="escalate-btn">
+                        <button id="escalate-btn" class="escalate-btn" style="display: none;">
                             👨‍💻 Falar com técnico
                         </button>
                     </div>
@@ -114,15 +113,13 @@ class ChatWidget {
             identificationForm: document.getElementById('identification-form'),
             userNameInput: document.getElementById('user-name'),
             userEmailInput: document.getElementById('user-email'),
-            escalationPanel: document.getElementById('escalation-panel'),
-            escalateBtn: document.getElementById('escalate-btn')
+            escalationPanel: document.getElementById('escalation-panel')
         };
         
         // Event listeners
         this.elements.button.addEventListener('click', () => this.toggleChat());
         this.elements.close.addEventListener('click', () => this.closeChat());
         this.elements.sendButton.addEventListener('click', () => this.sendMessage());
-        this.elements.escalateBtn.addEventListener('click', () => this.requestEscalation());
         this.elements.identificationForm.addEventListener('submit', (e) => this.handleIdentification(e));
         
         this.elements.input.addEventListener('keypress', (e) => {
@@ -231,7 +228,6 @@ class ChatWidget {
             
             this.hideLoading();
             this.addMessage('system', `Olá ${this.userData.name}! Conectando com nossa IA...`);
-            this.showEscalationPanel();
             
             // Processar resposta inicial da IA
             console.log('Resposta inicial recebida:', data);
@@ -309,11 +305,7 @@ class ChatWidget {
             } else if (data.type === 'escalated') {
                 this.handleEscalation(data);
             } else if (data.type === 'human') {
-                // Mensagem enviada para técnico, mostrar apenas uma vez
-                if (!this.technicianNotified) {
-                    this.addMessage('system', 'Mensagem enviada para o técnico...');
-                    this.technicianNotified = true;
-                }
+                // Mensagem enviada para técnico - sem notificação
             }
             
         } catch (error) {
@@ -338,13 +330,9 @@ class ChatWidget {
     handleEscalation(data) {
         this.chatState = 'HUMAN_ASSIGNED';
         this.chatId = data.chat_id;
-        this.technicianNotified = false; // Reset flag para nova escalação
         
         // Mostrar mensagem de transferência
         this.addMessage('system', data.message);
-        
-        // Atualizar interface
-        this.hideEscalationPanel();
         
         // Iniciar polling para mensagens do técnico
         this.startPolling();
@@ -382,11 +370,6 @@ class ChatWidget {
         // Enviar resposta
         const response = confirm ? 'Sim' : 'Não';
         this.elements.input.value = response;
-        this.sendMessage();
-    }
-    
-    requestEscalation() {
-        this.elements.input.value = "quero falar com técnico";
         this.sendMessage();
     }
     
@@ -483,16 +466,6 @@ class ChatWidget {
             indicator.textContent = '👨‍💻 Técnico Atribuído';
             indicator.className = 'chat-state-indicator state-human';
         }
-    }
-    
-    showEscalationPanel() {
-        if (this.config.showEscalationButton && this.chatState === 'AI_ACTIVE') {
-            this.elements.escalationPanel.style.display = 'block';
-        }
-    }
-    
-    hideEscalationPanel() {
-        this.elements.escalationPanel.style.display = 'none';
     }
     
     showLoading() {
