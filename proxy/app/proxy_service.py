@@ -116,6 +116,8 @@ class ProxyService:
                 "message": "Ok, vou continuar te ajudando. Em que posso ajudar?",
                 "confidence": 1.0
             }
+    
+    async def _handle_human_message(self, session: ProxySession, message: str) -> Dict:
         """Processa mensagem quando técnico está atribuído"""
         if not session.chat_id:
             return {"error": "Chat não foi criado no backend"}

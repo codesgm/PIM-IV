@@ -15,6 +15,7 @@ class ChatWidget {
         this.lastMessageId = 0;
         this.userData = null;
         this.pollingInterval = null;
+        this.technicianNotified = false; // Flag para controlar notificação única
         
         this.init();
     }
@@ -307,8 +308,11 @@ class ChatWidget {
             } else if (data.type === 'escalated') {
                 this.handleEscalation(data);
             } else if (data.type === 'human') {
-                // Mensagem enviada para técnico, aguardar resposta
-                this.addMessage('system', 'Mensagem enviada para o técnico...');
+                // Mensagem enviada para técnico, mostrar apenas uma vez
+                if (!this.technicianNotified) {
+                    this.addMessage('system', 'Mensagem enviada para o técnico...');
+                    this.technicianNotified = true;
+                }
             }
             
         } catch (error) {
@@ -333,10 +337,10 @@ class ChatWidget {
     handleEscalation(data) {
         this.chatState = 'HUMAN_ASSIGNED';
         this.chatId = data.chat_id;
+        this.technicianNotified = false; // Reset flag para nova escalação
         
         // Mostrar mensagem de transferência
         this.addMessage('system', data.message);
-        this.addMessage('system', `Técnico será atribuído em breve. Chat ID: ${data.chat_id}`);
         
         // Atualizar interface
         this.updateStateIndicator();
@@ -584,7 +588,8 @@ class ChatWidget {
 
 // Inicializar widget quando DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
+    const proxyUrl = window.chatConfig?.proxyUrl || 'http://localhost:9000';
     window.chatWidget = new ChatWidget({
-        proxyUrl: 'http://192.168.0.152:9000'
+        proxyUrl: proxyUrl
     });
 });
