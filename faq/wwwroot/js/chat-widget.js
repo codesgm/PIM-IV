@@ -441,13 +441,7 @@ class ChatWidget {
         time.className = 'message-time';
         time.textContent = this.formatTime(timestamp);
         
-        // Adicionar confidence score para mensagens IA
-        if (type === 'ai' && confidence !== null) {
-            const confidenceDiv = document.createElement('div');
-            confidenceDiv.className = 'confidence-score';
-            confidenceDiv.textContent = `Confiança: ${Math.round(confidence * 100)}%`;
-            messageDiv.appendChild(confidenceDiv);
-        }
+
         
         messageDiv.appendChild(bubble);
         messageDiv.appendChild(time);
